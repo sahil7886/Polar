@@ -1,0 +1,21 @@
+from pymongo import MongoClient
+
+client = MongoClient("mongodb://localhost:27017/")
+db = client["polar_db"]  
+videos_collection = db["videos"]  
+def add_video(video_id, title, transcript, embedding):
+    """
+    Adds or updates a video document in MongoDB.
+    :param video_id: str, unique identifier for the video
+    :param title: str, title of the video
+    :param transcript: str, transcript of the video
+    :param embedding: list, vectorized transcript
+    """
+    video_data = {
+        "_id": video_id,
+        "title": title,
+        "transcript": transcript,
+        "embedding": embedding  
+    }
+    videos_collection.update_one({"_id": video_id}, {"$set": video_data}, upsert=True)
+    print(f"Video {video_id} added/updated successfully!")
