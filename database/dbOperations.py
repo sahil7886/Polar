@@ -1,64 +1,61 @@
-from database.db_config import db
+# ✅ Updated Schemas and Database Operations
+
+from dbConfig import db, fs  # Assuming GridFS and db are initialized
 from datetime import datetime
 from bson.objectid import ObjectId
 
+# Collections
 users_collection = db["users"]
 videos_collection = db["videos"]
 
-def insert_user(username, email, bias_score, alignment):
+# 🔹 User Operations
+def insert_user(username, email, bias_score):
     user = {
         "username": username,
         "email": email,
-        "bias_score": bias_score,
-        "alignment": alignment,
+        "bias_score": bias_score
     }
     return users_collection.insert_one(user).inserted_id
 
 def get_user(username):
     return users_collection.find_one({"username": username})
 
-def update_user_bias(user_id, new_bias_score, new_alignment):
+def update_user_bias(user_id, new_bias_score):
     return users_collection.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"bias_score": new_bias_score, "alignment": new_alignment}}
+        {"$set": {"bias_score": new_bias_score}}
     )
 
 def delete_user(user_id):
     return users_collection.delete_one({"_id": ObjectId(user_id)})
 
-def insert_video(uploader_id, title, topic_id, bias_score):
+# 🔹 Video Operations
+def insert_video(file_path, uploader_id, bias_score):
+    # Save the video file to GridFS
+    with open(file_path, "rb") as video_file:
+        gridfs_id = fs.put(video_file, filename=file_path.split("/")[-1])
+
+    # Video metadata document
     video = {
         "uploader_id": uploader_id,
-        "title": title,
-        "topic_id": topic_id,
+        "url": f"gridfs://{gridfs_id}",
         "bias_score": bias_score,
-        "views_count": 0,
-        "likes_count": 0,
-        "dislikes_count": 0,
-        "engagement": {"shares": 0, "reports": 0}
+        "uploaded_at": datetime.utcnow()
     }
-    return videos_collection.insert_one(video).inserted_id
 
-def get_videos_by_topic(topic_id):
-    return list(videos_collection.find({"topic_id": topic_id}))
+    # Insert metadata and return the auto-generated _id
+    result = videos_collection.insert_one(video)
+    return result.inserted_id
 
-def increment_video_views(video_id):
-    return videos_collection.update_one({"_id": ObjectId(video_id)}, {"$inc": {"views_count": 1}})
+def get_videos_by_uploader(uploader_id):
+    return list(videos_collection.find({"uploader_id": uploader_id}))
 
-# 🔹 Update Video Engagement (Likes, Dislikes, Shares, Reports)
-def update_video_engagement(video_id, likes=None, dislikes=None, shares=None, reports=None):
-    update_data = {}
-    if likes is not None:
-        update_data["likes_count"] = likes
-    if dislikes is not None:
-        update_data["dislikes_count"] = dislikes
-    if shares is not None:
-        update_data["engagement.shares"] = shares
-    if reports is not None:
-        update_data["engagement.reports"] = reports
-    
-    return videos_collection.update_one({"_id": ObjectId(video_id)}, {"$set": update_data})
-
-# 🔹 Delete a Video
 def delete_video(video_id):
-    return videos_collection.delete_one({"_id": ObjectId(video_id)})
+    video_data = videos_collection.find_one({"_id": ObjectId(video_id)})
+    if video_data:
+        gridfs_id = video_data["url"].split("gridfs://")[-1]
+        fs.delete(ObjectId(gridfs_id))
+        videos_collection.delete_one({"_id": ObjectId(video_id)})
+        return True
+    return False
+
