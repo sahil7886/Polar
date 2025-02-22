@@ -29,7 +29,7 @@ export default function Home() {
     const options = {
       root: null,
       rootMargin: "0px",
-      threshold: 0.5,
+      threshold: 0.7,
     }
 
     observerRef.current = new IntersectionObserver((entries) => {
@@ -78,7 +78,7 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 bg-white z-10 p-4 shadow-md">
         <h1 className="text-2xl font-bold">Polar</h1>
       </header>
-      <div ref={containerRef} className="pt-16 pb-8 h-screen overflow-y-scroll snap-y snap-mandatory">
+      <div ref={containerRef} className="pt-64 pb-8 h-screen overflow-y-scroll snap-y snap-mandatory">
         {feed.map((videoSrc, index) => (
           <VideoItem
             key={`${videoSrc}-${index}`}
@@ -187,4 +187,3 @@ function VideoItem({ src, onNext, onPrev }: VideoItemProps) {
     </div>
   )
 }
-
