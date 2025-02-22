@@ -1,5 +1,7 @@
 VideosSchema = {
     "uploader_id": str,
+    "url": str,
+    "video_id": str,
     "title": str,
     "topic_id": str,
     "bias_score": float,
@@ -7,9 +9,4 @@ VideosSchema = {
     "likes_count": int,
     "dislikes_count": int,
     "like-dislike-ratio" : float,
-
-    "engagement": {
-        "shares": int,
-        "reports": int
-    }
 }
