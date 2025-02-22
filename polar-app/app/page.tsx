@@ -17,7 +17,6 @@ const videoPool = [
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
 ]
 
-// Initialize feed with first 3 videos
 const initialFeed = videoPool.slice(0, 3)
 
 export default function Home() {
