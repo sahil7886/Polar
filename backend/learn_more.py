@@ -39,12 +39,29 @@ def generate_summary_from_transcript(transcript: str) -> str:
     if response.status_code == 200:
         result = response.json()
         generated_text = result[0]['generated_text']
-
-        if "xample:" in generated_text or "Title:" in generated_text:
-            trimmed_response = generated_text.split("xample:")[-1].strip()
-            trimmed_response = trimmed_response.split("Title:")[-1].strip()
-        else:
-            trimmed_response = generated_text.strip()
+        trimmed_response = generated_text[len(prompt):].strip()
+        # prompt = f"""
+        # Beautify the text below and remove the prompt and the transcript sentence:
+        #
+        # Text:
+        # {generated_text}
+        # """
+        # response = requests.post(API_URL, headers=HEADERS, json={"inputs": prompt})
+        # result = response.json()
+        # generated_text = result[0]['generated_text']
+        # if "xample:" in generated_text or "Title:" in generated_text:
+        #     trimmed_response = generated_text.split("xample:")[-1].strip()
+        #     trimmed_response = trimmed_response.split("Title:")[-1].strip()
+        #     trimmed_response = trimmed_response.split(f"{transcript}")[-1].strip()
+        #     last_occurrence_index = trimmed_response.rfind(transcript)
+        #
+        #     # If transcript is found, extract everything after it
+        #     if last_occurrence_index != -1:
+        #         trimmed_response = trimmed_response[last_occurrence_index + len(transcript):].strip()
+        #     else:
+        #         trimmed_response = trimmed_response.strip()
+        # else:
+        #     trimmed_response = generated_text.strip()
 
         return trimmed_response
     else:
