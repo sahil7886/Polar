@@ -4,9 +4,10 @@ from pymongo.server_api import ServerApi
 from bson.objectid import ObjectId
 import pymongo
 import gridfs
+import os
 
 # Use the provided connection URI
-uri = "mongodb+srv://aaryasontakke0507:lV1yR2c5ichbdZ7h@cluster0.axpym.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+uri = os.environ.get("MONGO_URI")
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 db = client["polar_db"]

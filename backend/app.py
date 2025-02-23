@@ -72,21 +72,34 @@ def stream_video(video_id):
 
     return Response(generate(), content_type="video/mp4")
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
 
 
-def generate_summary_from_transcript(transcript: str) -> str:
+#TODO: make this function work and make it connect to frontend
+@app.route("/summary/<video_id>")
+def generate_summary_from_video(video_id: str) -> str:
     """
-    Generates a concise title and summary from a given transcript using Hugging Face API.
+    Generates a concise title and summary from a given video_id by fetching its transcript from MongoDB.
     Returns the generated response as a string.
     """
     # Load environment variables
-
-    # Hugging Face API Key
     API_KEY = os.environ.get("HUGGINGFACE_API_KEY")
     if not API_KEY:
         raise ValueError("HUGGINGFACE_API_KEY is not set in environment variables.")
+
+    # Fetch video document from MongoDB
+    print("Received video_id: ", video_id)
+    video_document = videos_collection.find_one({"_id": ObjectId(video_id)})
+    
+    if not video_document or "transcript" not in video_document:
+        return {"error": "Transcript not found for the provided video_id."}
+    
+    transcript = video_document["transcript"]
+    if (transcript != ""):
+        print("Transcript fetched")
+    elif (transcript == ""):
+        print("Transcript empty")
+    else:
+        print("Transcript fetch unsuccessful:", type(transcript))
 
     # Hugging Face API settings
     API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
@@ -102,7 +115,6 @@ def generate_summary_from_transcript(transcript: str) -> str:
 
     Transcript:
     {transcript}
-
     """
 
     # Send request to Hugging Face API
@@ -112,29 +124,9 @@ def generate_summary_from_transcript(transcript: str) -> str:
         result = response.json()
         generated_text = result[0]['generated_text']
         trimmed_response = generated_text[len(prompt):].strip()
-        # prompt = f"""
-        # Beautify the text below and remove the prompt and the transcript sentence:
-        #
-        # Text:
-        # {generated_text}
-        # """
-        # response = requests.post(API_URL, headers=HEADERS, json={"inputs": prompt})
-        # result = response.json()
-        # generated_text = result[0]['generated_text']
-        # if "xample:" in generated_text or "Title:" in generated_text:
-        #     trimmed_response = generated_text.split("xample:")[-1].strip()
-        #     trimmed_response = trimmed_response.split("Title:")[-1].strip()
-        #     trimmed_response = trimmed_response.split(f"{transcript}")[-1].strip()
-        #     last_occurrence_index = trimmed_response.rfind(transcript)
-        #
-        #     # If transcript is found, extract everything after it
-        #     if last_occurrence_index != -1:
-        #         trimmed_response = trimmed_response[last_occurrence_index + len(transcript):].strip()
-        #     else:
-        #         trimmed_response = trimmed_response.strip()
-        # else:
-        #     trimmed_response = generated_text.strip()
-
         return trimmed_response
     else:
         return f"Error {response.status_code}: {response.text}"
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5001)

@@ -6,6 +6,7 @@ import gridfs
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from tqdm import tqdm
+from database import dbConfig
 
 # -----------------------------------------------------------------------------
 # 1) CONNECT TO MONGODB
