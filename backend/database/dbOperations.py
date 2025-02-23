@@ -7,6 +7,7 @@ import os
 from transformers import pipeline
 
 from vectorize_transcript import vectorize_transcript
+from transcript import transcribe_mp4
 
 # Collections
 users_collection = db["users"]
@@ -38,11 +39,13 @@ def insert_video(file_path, uploader_id, bias_score):
     # Save the video file to GridFS
     with open(file_path, "rb") as video_file:
         gridfs_id = fs.put(video_file, filename=file_path.split("/")[-1])
-
+    if os.path.isfile(file_path) and file_path.lower().endswith(".mp4"):
+        transcript = transcribe_mp4(file_path)
     # Video metadata document
     video = {
         "uploader_id": uploader_id,
         "url": f"gridfs://{gridfs_id}",
+        "transcript": transcript,
         "bias_score": bias_score,
         "uploaded_at": datetime.utcnow()
     }
