@@ -4,9 +4,9 @@ from .dbConfig import db, fs  # Assuming GridFS and db are initialized
 from datetime import datetime
 from bson.objectid import ObjectId
 import os
+from transformers import pipeline
 
-from ..recommends import get_bias_score
-from ..vectorize_transcript import vectorize_transcript
+from vectorize_transcript import vectorize_transcript
 
 # Collections
 users_collection = db["users"]
@@ -125,3 +125,15 @@ def get_video_closest_to_user_bias(user_id):
         "bias_score": closest_video["bias_score"]
     }
 
+
+# from recommender.py
+# Load the zero-shot classification model
+classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+# Labels for classification
+labels = ["progressive policies", "conservative policies", "neutral"]
+def get_bias_score(text):
+    """Calculates bias score based on text classification."""
+    result = classifier(text, labels)
+    scores = {label: score for label, score in zip(result["labels"], result["scores"])}
+    bias_score = scores["conservative policies"] - scores["progressive policies"]
+    return bias_score

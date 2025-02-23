@@ -1,6 +1,7 @@
 # ✅ MongoDB Connection Setup
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from bson.objectid import ObjectId
 import pymongo
 import gridfs
 
@@ -16,5 +17,14 @@ fs = gridfs.GridFS(db)
 try:
     client.admin.command('ping')
     print("✅ Successfully connected to MongoDB Atlas!")
+    users_collection = db["users"]
+    videos_collection = db["videos"]
+
+    user = users_collection.find_one({"_id": ObjectId("67ba811352fcae1c36e18adc")})
+    print(user)
+
+    # video = videos_collection.find_one({}, sort=[("_id", -1)])
+    # print(video)
+
 except Exception as e:
     print(f"❌ Connection failed: {e}")
