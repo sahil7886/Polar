@@ -1,6 +1,7 @@
 VideosSchema = {
     "uploader_id": str,
     "url": str,
-		"transcript": str,
+	"transcript": str,
     "bias_score": float,
+    "embedding": list
 }

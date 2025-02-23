@@ -5,6 +5,9 @@ from datetime import datetime
 from bson.objectid import ObjectId
 import os
 
+from ..recommends import get_bias_score
+from ..vectorize_transcript import vectorize_transcript
+
 # Collections
 users_collection = db["users"]
 videos_collection = db["videos"]
@@ -59,6 +62,30 @@ def delete_video(video_id):
         videos_collection.delete_one({"_id": ObjectId(video_id)})
         return True
     return False
+
+def update_video_bias_scores():
+    videos = videos_collection.find()
+    for video in videos:
+        transcript = video.get("transcript", "")
+        if transcript:
+            new_bias_score = get_bias_score(transcript)
+            videos_collection.update_one(
+                {"_id": video["_id"]},
+                {"$set": {"bias_score": new_bias_score}}
+            )
+    print("✅ All video bias scores have been updated.")
+
+def update_video_embeddings():
+    videos = videos_collection.find()
+    for video in videos:
+        transcript = video.get("transcript", "")
+        if transcript:
+            embedding = vectorize_transcript(transcript)
+            videos_collection.update_one(
+                {"_id": video["_id"]},
+                {"$set": {"embedding": embedding}}
+            )
+    print("✅ All video embeddings have been updated.")
 
 def populate_sample_videos():
     user = get_user("0")
