@@ -74,7 +74,7 @@ def stream_video(video_id):
 
 
 
-#TODO: make this function work and make it connect to frontend
+#TODO: make this function work and make it connect to
 @app.route("/summary/<video_id>")
 def generate_summary_from_video(video_id: str) -> str:
     """

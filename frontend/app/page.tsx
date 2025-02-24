@@ -3,8 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useUser } from '@auth0/nextjs-auth0';
+import { auth0 } from "@/lib/auth0";
 
 export default function Home() {
+  const { user, error: userError, isLoading: userLoading } = useUser();
+  
   const [videoSrc, setVideoSrc] = useState("");
   const [currentVideoId, setCurrentVideoId] = useState("");
   const [summary, setSummary] = useState("");
@@ -58,8 +62,45 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchVideo();
-  }, []);
+    if (user) {
+      fetchVideo();
+    }
+  }, [user]);
+
+  // Show loading state while checking authentication
+  if (userLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  // Show error if there's an authentication error
+  if (userError) {
+    console.log("USER UNAUTHENTICATED")
+    return (
+      <main className="flex items-center justify-center h-screen gap-4">
+        <a href="/auth/login?screen_hint=signup" className="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 transition-colors">
+          Sign up
+        </a>
+        <a href="/auth/login" className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-400 transition-colors">
+          Log in
+        </a>
+      </main>
+    );
+  }
+
+  // If no user is authenticated, show sign-up and login buttons
+  if (!user) {
+    console.log("USER UNAUTHENTICATED")
+    return (
+      <main className="flex items-center justify-center h-screen gap-4">
+        <a href="/auth/login?screen_hint=signup" className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600 transition-colors">
+          Sign up
+        </a>
+        <a href="/auth/login" className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-400 transition-colors">
+          Log in
+        </a>
+      </main>
+    );
+  }
 
   if (!videoSrc) {
     return <div className="flex items-center justify-center h-screen">Loading video...</div>;
